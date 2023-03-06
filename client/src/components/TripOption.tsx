@@ -18,4 +18,5 @@ const styles = StyleSheet.create({
     tripOptions:{
       padding:  10,
       paddingLeft:0,
+      color: '#BF40BF'
     }})

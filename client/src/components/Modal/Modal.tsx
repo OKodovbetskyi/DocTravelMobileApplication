@@ -13,7 +13,6 @@ const CustomModal:React.FC<ModalProps> = ({children, modalHeader, visible, setVi
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setVisible(true)}>
-        <Text></Text>
       </TouchableOpacity>
       <Modal
         animationType="fade"

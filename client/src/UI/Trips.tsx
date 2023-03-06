@@ -1,16 +1,20 @@
-import React,{useState} from 'react'
-import ScreenWrapper from '../components/Wrapper/ScreenWrapper'
-import CardWrapper from '../components/Wrapper/CardWrapper'
-import { ScrollView } from 'react-native'
+import React,{useState,useEffect} from 'react'
+import { View, Text } from 'react-native';
 
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+import { Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { Button } from '@react-native-material/core';
+import { geocodecoords, getmycoords } from '../utils/mylocation-service';
 const Trips = () => {
   const [visible, setVisible] = useState(false);
 
+   
   return (
     <View style={styles.container}>
-   
+        <Button 
+        title= "Get current location"
+        onPress={()=>{}}
+        />
     </View>
   );
 };

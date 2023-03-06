@@ -1,19 +1,16 @@
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 interface locationDetailsProps{
-    city: string,
-    airportName: string,
-    country: string,
+    airport: any,
     handleSelect: (name:string)=>void
 }
 
-const SearchOutcomeItem: React.FC<locationDetailsProps> = ({city,airportName,country, handleSelect}) => {
- 
+const SearchOutcomeItem: React.FC<locationDetailsProps> = ({airport, handleSelect}) => {
   return (
-    <Pressable style={styles.container} onPress={()=>handleSelect(airportName)}>
-        <Text style={styles.item}>{city},</Text>
-        <Text style={styles.item}>{airportName},</Text>
-        <Text style={styles.item}>{country}</Text>
+    <Pressable style={styles.container} onPress={()=>handleSelect(airport)}>
+        <Text style={styles.item}>{airport.subName}</Text>
+        <Text style={styles.item}>{airport.name}</Text>
+        <Text style={styles.item}>{airport.address.countryName}</Text>
     </Pressable>
   )
 }
