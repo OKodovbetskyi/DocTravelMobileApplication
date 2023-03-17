@@ -11,11 +11,9 @@ interface Props{
   navigation: any
 }
 const Login: React.FC<Props> = ({navigation}) => {
-  const {isLoggedin , setLogin}= useContext(AuthContext);
-console.log(isLoggedin);
   return (
     <ScreenWrapper>
-      <Text>Healthy Travel</Text>
+      <Text style={[styles.header, styles.text]}>Healthy Travel</Text>
       <CardWrapper screenTitle='DocTravel'>
       <View style={styles.login}>
       <TextInput variant="outlined" label="Username" style={{ margin: 16 }} />
@@ -26,7 +24,7 @@ console.log(isLoggedin);
       }}
       >Forgot password?</Text>
       <Button style={styles.btn_login} onPress={()=>{
-        setLogin(true)
+       navigation.navigate('Home')
       }} title="login" />
       </View>
       </View>

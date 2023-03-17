@@ -12,6 +12,18 @@ const Home: React.FC<HomeProps> = ({navigation}) => {
   return (
     <View style={styles.main}>
       <Text style={[styles.header, styles.text]}>Healthy Travel</Text>
+      <View style={styles.loginFunctionality}>
+      <View style={styles.funcitem}>
+          <TouchableOpacity onPress={()=>{navigation.navigate('Login')}}>
+          <Text>Sign In</Text>
+          </TouchableOpacity>
+      </View>
+      <View style={styles.funcitem}>
+          <TouchableOpacity onPress={()=>{navigation.navigate('SignUp')}}>
+          <Text>Sign Up</Text>
+          </TouchableOpacity>
+      </View>
+      </View>
       <View style={styles.searchcontainer}>
       <View style={styles.item}>
           <TouchableOpacity>
@@ -50,6 +62,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     margin: 15
   },
+  text:{
+    color:'purple'
+  },
   searchcontainer:{
     display: 'flex',
     flexDirection: 'row',
@@ -63,9 +78,7 @@ const styles = StyleSheet.create({
     margin: 8,
     color: 'purple'
   },
-  text:{
-    color:'purple'
-  },
+ 
   accountFunctions:{
     marginTop:'50%',
    flexDirection:'row'
@@ -73,6 +86,15 @@ const styles = StyleSheet.create({
   },
   button:{
     margin:5,
+  },
+  loginFunctionality:{
+    display:"flex",
+    flexDirection:"row-reverse",
+    padding: 10
+  },
+  funcitem:{
+    margin:5,
+
   }
 })
 export default Home

@@ -4,6 +4,7 @@ import { Text, Touchable, TouchableOpacity, View } from 'react-native'
 import styles from './FlightsStyles'
 import { Button } from 'react-native-elements'
 import { Ionicons } from '@expo/vector-icons';
+
 import LinearProgress from 'react-native-elements/dist/linearProgress/LinearProgress'
 import SaveAndBook from './SaveAndBook'
 interface flightsProps{
@@ -35,7 +36,7 @@ const Flights: React.FC<flightsProps> = ({ticket}) => {
         </View>
         { visible &&  <SaveAndBook /> }
        
-        
+
     </TouchableOpacity>
   )
 }

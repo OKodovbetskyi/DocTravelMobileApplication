@@ -1,5 +1,6 @@
 import {  Button, Dialog, DialogContent, DialogHeader, Flex, IconButton, Provider } from '@react-native-material/core'
 import React, { useEffect, useState } from 'react'
+import {useDispatch, useSelector} from 'react-redux'
 import { FlatList, Platform, ScrollView, StyleSheet } from 'react-native';
 import { View, Text} from 'react-native'
 import DatePicker from 'react-native-modern-datepicker';
@@ -10,7 +11,14 @@ import TripOption from '../components/TripOption';
 import axios from 'axios';
 import SearchOutcomeItem from '../components/SearchOutcomeItem';
 import { geocodecoords, getmycoords } from '../utils/mylocation-service';
+import { flightqueActions } from '../store';
 import Flights from '../components/Flights';
+import Constants from 'expo-constants';
+const IP_ADDRESS = process.env.IP_ADDRESS
+const URL = `http://${IP_ADDRESS}:5002/`
+const airports_endp =  `api/airports`
+const flight_query_endp = `api/flight-query`
+
 interface Props {
   title: string;
 }
@@ -32,125 +40,172 @@ const itinialState = {
   destination:null,
   departureDate: "",
   returnDate: "", 
+  tripOptions:{
+    oneWay: true,
+    return:  false
+  }
 }
 const FlightSearch : React.FC<Props> = () => {
-  const [flightquery, setFlightQuery] = useState(itinialState);
-  const [flighttickets, setFlightTickets] = useState([]);
-  
+  const dispatch = useDispatch();
+  const flightquery = useSelector(state=>state.flightQueSlice)
+  console.log(flightquery)
   const [visible, setVisible] = useState({departure: false, currentCity: false});
   const [visibleCalendar, setVisibleCalendar] = useState({departure: false, returnDate: false})
-
-  const [data, setData] = useState<Data[{}]>([]);
-
-  const [searchValue, setSearchValue] = useState('Lon');
-  const [loading, isLoading] = useState(true);
-  useEffect(() => {
+ useEffect(() => {
     // send Axios request when search term changes
-    axios.get(`http://localhost:5002/api/airports`, {
+    axios.get(URL+airports_endp, {
       params:{
-        keyword: searchValue
+        keyword: flightquery.searchValue
       }
     })
       .then(response => {
-        setData(response.data)
-        isLoading(false)
+        handleCityNamesChange(response.data)
       })
       .catch(error => {
         console.error(error);
       });
-  }, [searchValue]);
+  }, [flightquery.searchValue]); 
 
   useEffect(() => {
+    const requestQuery = {
+      originLocationCode : flightquery.originLocationCode,
+      destinationLocationCode: flightquery.destinationLocationCode, 
+      departureDate: flightquery.departureDate
+    }
     const sendData = async () => {
       try {
         const response = await axios.post(
-          'http://localhost:5002/api/flight-query',
-          flightquery,
+          URL+flight_query_endp,
+          requestQuery,
           { headers: { 'Content-Type': 'application/json' } }
         );
-        setFlightTickets([...response.data]);
+          handleTicketsFetch(response.data);
+        console.log(response.data)
       } catch (error) {
         console.error(error);
       }
     };
-
     sendData();
-  }, [flightquery]);
+  }, [flightquery.returnDate,flightquery.departureDate, flightquery.destination, flightquery.departure]);
   //handle select when city or airport selected
   function handleSelectDeparture(name:string){
-    setFlightQuery({...flightquery, departure: name , originLocationCode: name.address.cityCode});
+    dispatch(flightqueActions.setDepartureLocation({departure:name,originLocationCode: name.address.cityCode}))
     setVisible({...visible, departure:false})
   }
    //handle select when city or airport selected
-   function handleSelectReturn(name:string){
-    setFlightQuery({...flightquery, destination: name, destinationLocationCode: name.address.cityCode})
+  function handleSelectReturn(name:string){
+    dispatch(flightqueActions.setDestinationLocation({ destination: name, destinationLocationCode: name.address.cityCode}))
     setVisible({...visible, currentCity :false})
   }
   //toggle calendar close
   function toggleCalendarModal(name:  string){
     setVisibleCalendar({...visibleCalendar,  [name]: false})
   }
-  const [address, setmyaddress]  = useState(null);
- 
+  //Toggle trip oprions
+  function toggelTripOption(option: string){
+    dispatch(flightqueActions.setFlightOptions(option))
+    }
+  function handleSearch(city: string){
+    dispatch(flightqueActions.setSearchValue(city))
+  }
+  function handleTicketsFetch(tickets :[]) {
+    dispatch(flightqueActions.setFlightTickets(tickets))
+  }
+  function handleFlightDepartureDate(date:string){  
+    dispatch(flightqueActions.setFlightDepartureDate(date))
+  }
+  function handleFlightReturnDate(date:string){
+    dispatch(flightqueActions.setFlightReturnDate(date))
+  }
+  function handleCityNamesChange(name: []){
+    dispatch(flightqueActions.setCityNames(name))
+  }
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const mycoords = await getmycoords();
-        if (mycoords) {
-          const myaddress = await geocodecoords(mycoords);
-          const separated = myaddress.split(',');
-          const formatted = separated[1] + separated[2];
-          setmyaddress(formatted)
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    })();
-  }, []);
+  // const [address, setmyaddress]  = useState(null);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const mycoords = await getmycoords();
+  //       if (mycoords) {
+  //         const myaddress = await geocodecoords(mycoords);
+  //         const separated = myaddress.split(',');
+  //         const formatted = separated[1] + separated[2];
+  //         setmyaddress(formatted)
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //   })();
+  // }, []);
 
   return (
 
   <View style={styles.container}>
     <View style={styles.row}>
-      <TripOption tripOptionName='One Way' defOption={false}/>
-      <TripOption tripOptionName='Return' defOption/>
+      <TripOption 
+      tripOptionName='One Way' 
+      handleSelect={()=>toggelTripOption('oneWay')} 
+      defOption={flightquery.tripOptions.oneWay}/>
+      <TripOption 
+      tripOptionName='Return' 
+      handleSelect={()=>toggelTripOption('return')}
+      defOption={flightquery.tripOptions.return}/>
     </View>
+  
     <View style={styles.row} >
-    <TextInput style={styles.input} placeholder="Current Location"  onPressIn={()=>setVisible({...visible, currentCity: true})}  value={flightquery.departure != null ? flightquery.departure.name : ''}/>
-    <Text> to </Text>
-    <TextInput style={styles.input} placeholder="Destination" onPressIn={()=>setVisible({...visible, departure:true})} value={flightquery.destination != null ? flightquery.destination.name : ''}/>
+    <TextInput style={styles.input} placeholder="Current Location"  onPressIn={()=>setVisible({...visible, currentCity: true})}  value={flightquery.departure != null ? flightquery.departure : ''}/>
+    <Ionicons name="md-airplane" size={24} color="#BF40BF" />
+         <TextInput 
+         style={styles.input} 
+         placeholder="Destination" 
+         onPressIn={()=>setVisible({...visible, departure:true})} 
+         value={flightquery.destination != null ? flightquery.destination: ''}
+         editable={!flightquery.tripOptions.return}/> 
     </View>
+    {!flightquery.tripOptions.oneWay &&
+    <View>
+      <Text>Return flight</Text>
+       <View style={styles.row} >
+    <TextInput style={styles.input} placeholder="Current Location"  onPressIn={()=>setVisible({...visible, currentCity: true})}  value={flightquery.departure != null ? flightquery.departure.name : ''}/>
+    <Text>to</Text>
+         <TextInput 
+         style={styles.input} 
+         placeholder="Destination" 
+         onPressIn={()=>setVisible({...visible, departure:true})} 
+         value={flightquery.destination != null ? flightquery.destination.name : ''}
+         editable={!flightquery.tripOptions.return}/> 
+    </View>
+         
+         </View>}
     <View style={styles.row}>
     <View style={styles.input}>
     <Text>Departure:</Text>
     {
       flightquery.departureDate.length > 0 
-      ? <Text>{flightquery.departureDate}</Text>
-      : <IconButton 
+      && <Text>{flightquery.departureDate}</Text>}
+      <IconButton 
       icon={props => <Ionicons style={{fontSize:24}} name="calendar-sharp" />} 
       onPress={() => setVisibleCalendar({...visibleCalendar, departure:true})}
     />
-    }
+    
    
    </View>
    <View style={styles.input}>
        <Text>Return date:</Text>
        {
      flightquery.returnDate.length > 0 
-    ? <Text>{flightquery.returnDate}</Text>
-    :
+    && <Text>{flightquery.returnDate}</Text>}
      <IconButton 
     icon={props => <Ionicons style={{fontSize:24}} name="calendar-sharp" />} 
     onPress={() => setVisibleCalendar({...visibleCalendar, returnDate:true})}
-  />}
+  />
        
     </View>
     </View>
     <View style={styles.tickets}>
-    <Text style={styles.title}>Flights to {flightquery.destination != null ? flightquery.destination.name :"" }</Text>
+    <Text style={styles.title}>Flights to {flightquery.destination != null ? flightquery.destination :"" }</Text>
     <FlatList
-        data={flighttickets}
+        data={flightquery.flighttickets}
         renderItem={({item}) => 
         <Flights ticket={item} />}
       />
@@ -160,7 +215,7 @@ const FlightSearch : React.FC<Props> = () => {
       setVisible={()=>toggleCalendarModal("departure")}>
       <DatePicker 
     onSelectedChange = {(date)=>{
-      setFlightQuery({...flightquery, departureDate: date})
+      handleFlightDepartureDate(date)
       toggleCalendarModal("departure");
     }}
     mode="calendar"/>
@@ -169,8 +224,9 @@ const FlightSearch : React.FC<Props> = () => {
     <Modal modalHeader='Please select return date:'
       visible={visibleCalendar.returnDate}
       setVisible={()=>toggleCalendarModal("returnDate")}>
-      <DatePicker   onSelectedChange={(date)=>{
-        setFlightQuery({...flightquery, returnDate: date})
+      <DatePicker   
+      onSelectedChange={(date)=>{
+        handleFlightReturnDate(date)
         toggleCalendarModal("returnDate");
       }}
     mode="calendar"/>
@@ -180,10 +236,10 @@ const FlightSearch : React.FC<Props> = () => {
     modalHeader='Departure city'
     visible={visible.departure}
     setVisible={setVisible}>
-    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && setSearchValue(input) } />    
+    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && handleSearch(input) } />    
     <FlatList
         style={styles.listoftickets}
-        data={data}
+        data={flightquery.cityNames}
         renderItem={({item}) => 
         <SearchOutcomeItem airport={item}
             handleSelect={handleSelectReturn} />}
@@ -194,7 +250,7 @@ const FlightSearch : React.FC<Props> = () => {
     modalHeader='Current city'
     visible={visible.currentCity}
     setVisible={setVisible}>
-    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && setSearchValue(input) } />
+    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && handleSearch(input)} />
 {/* 
     {
       address === null ? 'loading' : 
@@ -205,7 +261,7 @@ const FlightSearch : React.FC<Props> = () => {
     } */}
 
     <FlatList
-        data={data}
+        data={flightquery.cityNames}
         renderItem={({item}) => 
         <SearchOutcomeItem 
         airport={item}
@@ -243,6 +299,7 @@ input: {
   marginVertical: 10,
 },
 row:{
+  marginVertical: 10,
   width: '90%',
   display:'flex',
   flexDirection: 'row',

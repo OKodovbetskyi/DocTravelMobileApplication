@@ -25,6 +25,14 @@ const styles = StyleSheet.create({
     },
     signup:{
       width: "100%"
-    }
+    },
+    header:{
+      textAlign:'center',
+      fontSize: 20,
+      margin: 15
+    },
+    text:{
+      color:'purple'
+    },
   });
   export default styles;

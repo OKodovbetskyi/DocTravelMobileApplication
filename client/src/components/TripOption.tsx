@@ -3,13 +3,13 @@ import { StyleSheet, Text } from 'react-native'
 interface TripOptionProps{
     tripOptionName: string,
     defOption : boolean ,
+    handleSelect :   () =>void ,
 
     
 }
-const TripOption: React.FC<TripOptionProps> = ({tripOptionName, defOption}) => {
-    const [isTripOptionSelected, setTripOptionSelected] = useState(defOption ? true : false); 
+const TripOption: React.FC<TripOptionProps> = ({tripOptionName, defOption, handleSelect}) => { 
   return (
-    <Text onPress={()=>setTripOptionSelected(!isTripOptionSelected)} style={[isTripOptionSelected && {fontWeight: 'bold'}, styles.tripOptions]}> {tripOptionName}</Text>
+    <Text onPress={handleSelect} style={[defOption && {fontWeight: 'bold'}, styles.tripOptions]}> {tripOptionName}</Text>
   )
 }
 

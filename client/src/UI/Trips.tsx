@@ -1,19 +1,24 @@
 import React,{useState,useEffect} from 'react'
 import { View, Text } from 'react-native';
-
-
-import { Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { counterActions } from '../store/index';
+import {useDispatch, useSelector} from 'react-redux'
+import { StyleSheet } from 'react-native';
 import { Button } from '@react-native-material/core';
 import { geocodecoords, getmycoords } from '../utils/mylocation-service';
 const Trips = () => {
   const [visible, setVisible] = useState(false);
+  
 
-   
   return (
     <View style={styles.container}>
+      <Text>Counter,  </Text>
         <Button 
-        title= "Get current location"
-        onPress={()=>{}}
+        title= "+1"
+        
+        />
+          <Button 
+        title= "-1"
+        
         />
     </View>
   );

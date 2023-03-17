@@ -1,9 +1,12 @@
 import React from 'react'
-import { Text } from 'react-native'
-
+import { Text,View } from 'react-native'
 const Accomodation = () => {
   return (
-    <Text>This feature in progress</Text>
+    <View>
+       <Text>This feature in progress</Text>
+ 
+    </View>
+   
   )
 }
 

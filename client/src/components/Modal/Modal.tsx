@@ -10,6 +10,7 @@ interface ModalProps{
 }
 
 const CustomModal:React.FC<ModalProps> = ({children, modalHeader, visible, setVisible}) => {
+  
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setVisible(true)}>
