@@ -3,14 +3,14 @@ const cors = require('cors');
 const router = require('./router.js');
 const path = require('path');
 const IP = "";
-const PORT= 5002;
+const PORT= 3000;
 const app = express();
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
 
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 60 * 1000, 
+  max: 100, 
   message: "Too many requests, please try again later",
 });
 
