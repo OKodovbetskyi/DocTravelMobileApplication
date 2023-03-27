@@ -1,7 +1,8 @@
 import {  Button, Dialog, DialogContent, DialogHeader, Flex, IconButton, Provider } from '@react-native-material/core'
+import { FontAwesome } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react'
 import {useDispatch, useSelector} from 'react-redux'
-import { FlatList, Platform, ScrollView, StyleSheet } from 'react-native';
+import { FlatList, Platform, Pressable, ScrollView, StyleSheet, Touchable, TouchableOpacity } from 'react-native';
 import { View, Text} from 'react-native'
 import DatePicker from 'react-native-modern-datepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,17 +11,17 @@ import Modal from '../components/Modal/Modal';
 import TripOption from '../components/TripOption';
 import axios from 'axios';
 import SearchOutcomeItem from '../components/SearchOutcomeItem';
-import { geocodecoords, getmycoords } from '../utils/mylocation-service';
 import { flightqueActions } from '../store';
 import Flights from '../components/Flights';
-import Constants from 'expo-constants';
+import * as Network from 'expo-network';
+
 const IP_ADDRESS = process.env.IP_ADDRESS
-const URL = `http://${IP_ADDRESS}:5002/`
+const URL = `http://${IP_ADDRESS}:3000/`
 const airports_endp =  `api/airports`
 const flight_query_endp = `api/flight-query`
 
 interface Props {
-  title: string;
+  navigation: React.ReactNode;
 }
 interface coords{
   latitude: number,
@@ -32,33 +33,20 @@ interface cities{
   coords: coords,
 }
 
-const itinialState = {
-  currentLocation: "",
-  originLocationCode: "",
-  destinationLocationCode: "",
-  departure:null,
-  destination:null,
-  departureDate: "",
-  returnDate: "", 
-  tripOptions:{
-    oneWay: true,
-    return:  false
-  }
-}
-const FlightSearch : React.FC<Props> = () => {
+export const FlightSearch : React.FC<Props> = ({navigation}) => {
   const dispatch = useDispatch();
   const flightquery = useSelector(state=>state.flightQueSlice)
-  console.log(flightquery)
+  const [loading, setIsLoading] = useState(false);
   const [visible, setVisible] = useState({departure: false, currentCity: false});
   const [visibleCalendar, setVisibleCalendar] = useState({departure: false, returnDate: false})
  useEffect(() => {
-    // send Axios request when search term changes
     axios.get(URL+airports_endp, {
       params:{
         keyword: flightquery.searchValue
       }
     })
       .then(response => {
+        console.log(response.data)
         handleCityNamesChange(response.data)
       })
       .catch(error => {
@@ -66,7 +54,8 @@ const FlightSearch : React.FC<Props> = () => {
       });
   }, [flightquery.searchValue]); 
 
-  useEffect(() => {
+useEffect(() => {
+    setIsLoading(true);
     const requestQuery = {
       originLocationCode : flightquery.originLocationCode,
       destinationLocationCode: flightquery.destinationLocationCode, 
@@ -80,6 +69,7 @@ const FlightSearch : React.FC<Props> = () => {
           { headers: { 'Content-Type': 'application/json' } }
         );
           handleTicketsFetch(response.data);
+          setIsLoading(false);
         console.log(response.data)
       } catch (error) {
         console.error(error);
@@ -120,24 +110,9 @@ const FlightSearch : React.FC<Props> = () => {
   function handleCityNamesChange(name: []){
     dispatch(flightqueActions.setCityNames(name))
   }
-
-  // const [address, setmyaddress]  = useState(null);
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const mycoords = await getmycoords();
-  //       if (mycoords) {
-  //         const myaddress = await geocodecoords(mycoords);
-  //         const separated = myaddress.split(',');
-  //         const formatted = separated[1] + separated[2];
-  //         setmyaddress(formatted)
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   })();
-  // }, []);
-
+  function handleRemoveSelectedCity(){
+    dispatch(flightqueActions.setDepartureLocation(null))
+  }
   return (
 
   <View style={styles.container}>
@@ -150,8 +125,13 @@ const FlightSearch : React.FC<Props> = () => {
       tripOptionName='Return' 
       handleSelect={()=>toggelTripOption('return')}
       defOption={flightquery.tripOptions.return}/>
+      <TouchableOpacity style={styles.saved} onPress={()=>{navigation.navigate('SavedFlights')}}>
+      <FontAwesome name="bookmark" size={24} color="black" />
+      <Text>Saved</Text> 
+      </TouchableOpacity>
+     
     </View>
-  
+    
     <View style={styles.row} >
     <TextInput style={styles.input} placeholder="Current Location"  onPressIn={()=>setVisible({...visible, currentCity: true})}  value={flightquery.departure != null ? flightquery.departure : ''}/>
     <Ionicons name="md-airplane" size={24} color="#BF40BF" />
@@ -204,11 +184,16 @@ const FlightSearch : React.FC<Props> = () => {
     </View>
     <View style={styles.tickets}>
     <Text style={styles.title}>Flights to {flightquery.destination != null ? flightquery.destination :"" }</Text>
-    <FlatList
+    {
+      loading ? <Text>Loading your tickets...</Text>
+      :
+      <FlatList
         data={flightquery.flighttickets}
         renderItem={({item}) => 
         <Flights ticket={item} />}
       />
+    }
+    
     </View>
     <Modal modalHeader='Please select departure date:'
       visible={visibleCalendar.departure}
@@ -233,24 +218,38 @@ const FlightSearch : React.FC<Props> = () => {
     </Modal>
 
     <Modal 
-    modalHeader='Departure city'
+    modalHeader='Destination city'
     visible={visible.departure}
     setVisible={setVisible}>
-    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && handleSearch(input) } />    
-    <FlatList
-        style={styles.listoftickets}
+    <TextInput 
+     placeholder='Enter city or airport'
+     onChangeText={handleSearch} 
+     value={flightquery.searchValue}/>    
+    { flightquery.cityNames.length > 0 ? 
+        <FlatList
         data={flightquery.cityNames}
         renderItem={({item}) => 
-        <SearchOutcomeItem airport={item}
-            handleSelect={handleSelectReturn} />}
+        <SearchOutcomeItem 
+        airport={item}
+        handleSelect={handleSelectReturn}/>
+      }
       />
+      :
+      <Text>Search for city</Text>
+    }
     <Button title="Select" onPress={()=>{setVisible({...visible, departure:false})}}/>
     </Modal>
     <Modal 
     modalHeader='Current city'
     visible={visible.currentCity}
     setVisible={setVisible}>
-    <TextInput placeholder='Enter city or airport' onChangeText={input=>input && handleSearch(input)} />
+    <TextInput placeholder='Enter city or airport' 
+     onChangeText={handleSearch} 
+     value={flightquery.searchValue}
+     />
+     <TouchableOpacity onPress={handleRemoveSelectedCity}>
+      {flightquery.departure !== null ? <Text>Departure city: {flightquery.departure } <FontAwesome name="remove" size={24} color="black" /></Text>: <Text>Please select city</Text>}
+     </TouchableOpacity>
 {/* 
     {
       address === null ? 'loading' : 
@@ -259,8 +258,8 @@ const FlightSearch : React.FC<Props> = () => {
       airportName={address}
       handleSelect={handleSelectDeparture} />
     } */}
-
-    <FlatList
+    { flightquery.cityNames.length > 0 ? 
+        <FlatList
         data={flightquery.cityNames}
         renderItem={({item}) => 
         <SearchOutcomeItem 
@@ -268,19 +267,15 @@ const FlightSearch : React.FC<Props> = () => {
         handleSelect={handleSelectDeparture}/>
       }
       />
-
+      :
+      <Text>Search for city</Text>
+    }
     <Button title="Select" onPress={()=>{setVisible({...visible, currentCity:false})}}/>
     </Modal>
   </View>
 
 );
 };
-
-export const FlightSearchProvider = () => (
-  <Provider>
-    <FlightSearch title='home'/>
-  </Provider>
-);
 
 const styles = StyleSheet.create({
 container: {
@@ -336,6 +331,10 @@ title:{
 },
 listoftickets:{
   width:"100%"
+},
+saved:{
+  alignItems:'center',
+  marginLeft: 'auto',
 }
 
 

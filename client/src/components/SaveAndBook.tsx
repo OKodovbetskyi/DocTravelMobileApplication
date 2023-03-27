@@ -1,8 +1,16 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import Button from 'react-native-elements/dist/buttons/Button'
-
-const SaveAndBook = () => {
+import { useDispatch, useSelector } from 'react-redux'
+import { flightqueActions, persistantStorageActions } from '../store'
+interface SaveProps{
+  tickets: any
+}
+const SaveAndBook: React.FC<SaveProps> = ({ticket}) => {
+  const dispatch = useDispatch();
+  const handleSave= ()=>{
+    dispatch(persistantStorageActions.save(ticket));
+  }
   return (
     <View style={styles.container}>
                 <Button
@@ -20,6 +28,7 @@ const SaveAndBook = () => {
             <Button
               title="Save"
               style = {styles.button}
+              onPress={handleSave}
               buttonStyle={{
                 backgroundColor: '#BF40BF',
                 borderColor: 'transparent',

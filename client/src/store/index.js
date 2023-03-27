@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createSlice, configureStore} from '@reduxjs/toolkit'
+import axios from 'axios';
 
 const itinialState = {
-    searchValue: "Lon",
+    searchValue: "",
     currentLocation: "",
     originLocationCode: "",
     destinationLocationCode: "",
@@ -14,7 +16,8 @@ const itinialState = {
       return:  false
     },
     flighttickets: [],
-    cityNames: []
+    cityNames: [],
+    savedTickets: [],
   }
 const initialAuth = {
     isLoggedIn: true
@@ -24,12 +27,22 @@ const flightQueSlice = createSlice({
     initialState: itinialState,
     reducers:{
         setDepartureLocation(state, actions){
-            state.departure = actions.payload.departure.name;
-            state.originLocationCode= actions.payload.originLocationCode;
+            if (actions.payload !== null){
+                state.departure = actions.payload.departure.name;
+                state.originLocationCode= actions.payload.originLocationCode;
+            } else {
+                state.departure = null
+                state.originLocationCode= null
+            }
         },
         setDestinationLocation(state, actions){
+            if (actions.payload !== null){
             state.destination = actions.payload.destination.name;
             state.destinationLocationCode = actions.payload.destinationLocationCode;
+        } else {
+            state.destination = null
+            state.destinationLocationCode = null
+        }
         },
         setFlightOptions(state, actions){
             if (actions.payload === 'oneWay'){
@@ -54,9 +67,25 @@ const flightQueSlice = createSlice({
         },
         setCityNames(state, actions){
             state.cityNames = actions.payload;
+        }    
+    }
+})
+const persistantStorageSlice = createSlice({
+    name: 'persistantStorageSlice',
+    initialState: itinialState.savedTickets,
+    reducers:{
+        save(state, actions){
+            state.push(actions.payload);
+            try{
+                console.log('saving satate >>>',state);
+                AsyncStorage.setItem('FlightTickets', JSON.stringify(state))
+            }catch(err){
+                console.log(err);
+            }
+        },
+        load(state, actions){
+            state.push(actions.payload);
         }
-
-      
     }
 })
 const authSlice = createSlice({
@@ -65,13 +94,14 @@ const authSlice = createSlice({
     reducers:{}
 })
 
-
 const store = configureStore({
     reducer: {
         flightQueSlice: flightQueSlice.reducer,
         authSlice : authSlice.reducer,
+        persistantStorageSlice: persistantStorageSlice.reducer
 }});
 
 export const flightqueActions = flightQueSlice.actions;
+export const persistantStorageActions = persistantStorageSlice.actions;
 export default store;
 

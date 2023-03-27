@@ -1,25 +1,24 @@
 import React,{useState,useEffect} from 'react'
-import { View, Text } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { counterActions } from '../store/index';
 import {useDispatch, useSelector} from 'react-redux'
 import { StyleSheet } from 'react-native';
-import { Button } from '@react-native-material/core';
-import { geocodecoords, getmycoords } from '../utils/mylocation-service';
+import Flights from '../components/Flights';
 const Trips = () => {
-  const [visible, setVisible] = useState(false);
+  const dispatch = useDispatch();
+  const tickets = useSelector(state=>state.persistantStorageSlice)
   
 
   return (
     <View style={styles.container}>
-      <Text>Counter,  </Text>
-        <Button 
-        title= "+1"
-        
-        />
-          <Button 
-        title= "-1"
-        
-        />
+      <Text>Saved flight tickets</Text>
+      <FlatList
+        style={styles.tickets}
+        data={tickets}
+        renderItem={({item}) => 
+        <Flights ticket={item}  key={item.id}/>}
+      />
+    
     </View>
   );
 };
@@ -27,11 +26,11 @@ const Trips = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dialogContainer: {
- 
     backgroundColor: 'white',
     padding: 22,
     justifyContent: 'center',
@@ -39,6 +38,9 @@ const styles = StyleSheet.create({
     height: '100%',
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
+  tickets:{
+    width:'100%'
+  }
 });
 
 

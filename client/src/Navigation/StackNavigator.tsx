@@ -6,7 +6,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Accomodation from '../UI/Accomodation';
 import HealthPackages from '../UI/HealthPackages';
 import Home from '../UI/Home';
-import { FlightSearchProvider } from '../UI/FlightSearch';
+import { FlightSearch } from '../UI/FlightSearch';
+import AssistantAi from '../UI/AssistantAi';
+import Trips from '../UI/Trips';
+
 const Stack = createNativeStackNavigator();
 const StackNavigator = () => {
   return (
@@ -20,7 +23,9 @@ const StackNavigator = () => {
         <Stack.Screen name="ForgotPassword" component={ForgotPassword}/>
         <Stack.Screen name="Accomodation" component={Accomodation} />
         <Stack.Screen name="HealthPackages" component={HealthPackages} />
-        <Stack.Screen name="FlightSearch" component={FlightSearchProvider} />
+        <Stack.Screen name="FlightSearch" component={FlightSearch} />
+        <Stack.Screen name="AssistantAI" component={AssistantAi}/>
+        <Stack.Screen name="SavedFlights" component={Trips}/>
         </Stack.Navigator>
   )
 }
