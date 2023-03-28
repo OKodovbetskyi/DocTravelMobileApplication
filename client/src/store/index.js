@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createSlice, configureStore} from '@reduxjs/toolkit'
 import axios from 'axios';
 
-const itinialState = {
+const initialState = {
     searchValue: "",
     currentLocation: "",
     originLocationCode: "",
@@ -24,7 +24,7 @@ const initialAuth = {
 }
 const flightQueSlice = createSlice({
     name: 'flightQueSlice',
-    initialState: itinialState,
+    initialState: initialState,
     reducers:{
         setDepartureLocation(state, actions){
             if (actions.payload !== null){
@@ -72,19 +72,28 @@ const flightQueSlice = createSlice({
 })
 const persistantStorageSlice = createSlice({
     name: 'persistantStorageSlice',
-    initialState: itinialState.savedTickets,
+    initialState: initialState,
     reducers:{
         save(state, actions){
-            state.push(actions.payload);
+            if (actions.payload !== null){
+                     state.savedTickets.push(actions.payload);
+            }
             try{
                 console.log('saving satate >>>',state);
-                AsyncStorage.setItem('FlightTickets', JSON.stringify(state))
+                AsyncStorage.setItem('FlightTickets', JSON.stringify(state.savedTickets))
             }catch(err){
                 console.log(err);
             }
         },
         load(state, actions){
-            state.push(actions.payload);
+            state.savedTickets.push(actions.payload);
+        },
+        remove(state, actions){
+            if (state.savedTickets.length>0){
+                const filtered = state.savedTickets.filter(ticket=>ticket.itineraries[0].segments[0].id !== actions.payload);
+                state.savedTickets = filtered;
+                console.log('state len after remove', state.savedTickets.length)
+            }
         }
     }
 })
