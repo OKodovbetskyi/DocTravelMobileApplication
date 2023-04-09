@@ -1,4 +1,3 @@
-
 const Amadeus = require("amadeus");
 const router = require("express").Router();
 const getAirlineNameByCode = require('./utils/lookupAilineProvider');
@@ -6,6 +5,7 @@ const getAirlineNameByCode = require('./utils/lookupAilineProvider');
 const { CLIENT_ID, CLIENT_SECRET } = require('./config');
 const { response } = require("express");
 const API = `api`;
+const db = require('./src/mongodb_connection.js')
 //This is AMADEUS client for getting authToken that we need to make actual call to amadeus API 
 const amadeus = new Amadeus({
   clientId: CLIENT_ID,
@@ -13,7 +13,7 @@ const amadeus = new Amadeus({
 });
 
 //Endpoint
-const getNearestAirportController =(req,res)=>{
+const getNearestAirportController = async (req,res)=>{
   const { longitude, latitude } = req.body;
   amadeus.referenceData.locations.airports.get({
     longitude ,
@@ -47,8 +47,7 @@ const flightTicketsSearch = async (req, res) => {
     });
   }
 }
-
- const airportsController = async (req, res) => {
+const airportsController = async (req, res) => {
   const { keyword = 'Lond' } = req.query;
   if (keyword.length > 1) {
     amadeus.referenceData.locations.get({
@@ -74,10 +73,34 @@ const getAirlineNameController = async (req, res) => {
       res.status(200).json({data: name});
     });
 }
+const postBookingController = async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  try {
+    const result = await db.getConnection().collection('bookings').insertOne(data);
+    console.log(result);
+    res.status(200).send({ message: 'Booking created successfully', data:result.insertedId});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Error creating booking' });
+  }
+};
 
+const getBookingsController = async (req, res) =>{
+  try {
+    const result = await db.getConnection().collection('bookings').find().toArray();
+    res.status(200).send({result});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Error reading bookings' });
+  }
+}
 
 router.post(`/${API}/flight-query`, (req,res)=>  flightTicketsSearch(req,res));
 router.post(`/${API}/nearest-airport`, (req,res)=> getNearestAirportController(req,res));
+router.post(`/${API}/bookings`,(req,res)=>postBookingController(req,res));
+router.get(`/${API}/bookings`,(req,res)=>getBookingsController(req,res));
+router.get(`/${API}/bookings/:id`,(req,res)=>getBookingsController(req,res));
 router.get(`/${API}/airlinecode`, (req, res)=>getAirlineNameController(req,res))
 router.get(`/${API}/airports`, (req, res)=> airportsController(req,res))
 router.get('/', (req,res)=>res.json({message: '404 Page Not Found, Possibly wrong endpoint'}))

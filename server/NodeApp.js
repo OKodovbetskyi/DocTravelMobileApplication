@@ -7,7 +7,8 @@ const PORT= 3000;
 const app = express();
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
-
+//readallPosts()
+//addNewPost();
 const limiter = rateLimit({
   windowMs: 60 * 1000, 
   max: 100, 
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 
  // applying handler for API
  app.use("/", router);
+
  // Handling serving static files
  app.use(express.static(path.join(__dirname, '../client/build')));
  // Serving app on PORT we defined
