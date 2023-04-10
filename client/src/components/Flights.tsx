@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import CardWrapper from './Wrapper/CardWrapper'
-import { Text, Touchable, TouchableOpacity, View } from 'react-native'
+import { Text,TouchableOpacity, View } from 'react-native'
 import styles from './FlightsStyles'
-import { Button } from 'react-native-elements'
 import { Ionicons } from '@expo/vector-icons';
-
-import LinearProgress from 'react-native-elements/dist/linearProgress/LinearProgress'
 import SaveAndBook from './SaveAndBook'
 import axios from 'axios'
-const IP_ADDRESS = process.env.IP_ADDRESS
+import Constants from 'expo-constants';
+const IP_ADDRESS = Constants.expoConfig.extra.apiUrl;
 const URL = `http://${IP_ADDRESS}:3000/`
 const endpoint = 'api/airlinecode'
 interface flightsProps{
-    ticket: object
+    ticket: object,
+    saved: boolean,
+    navigation: any
 }
-const Flights: React.FC<flightsProps> = ({ticket}) => {
+const Flights: React.FC<flightsProps> = ({ticket, saved, navigation}) => {
     const [visible , setVisible] = useState(false);
     const [loading, setIsLoading] = useState(false);
     const [airlineCode, setAirline] = useState('');
@@ -35,7 +34,7 @@ const Flights: React.FC<flightsProps> = ({ticket}) => {
       }).catch(err=>console.error(err));
     },[])
     if (!loading){
-      console.log("AIRLINE CODE>>>>>>>>>>>>>>>>>>>",airlineCode);
+      console.log(ticket.itineraries[0].segments[0].id);
     }
   return (
     <TouchableOpacity style={styles.ticketContainer} onPress={toggleBookButton}>
@@ -68,7 +67,7 @@ const Flights: React.FC<flightsProps> = ({ticket}) => {
         <View style={styles.row}>
         <Text style={styles.price}>£{ticket.price.total}</Text>    
         </View>
-        { visible &&  <SaveAndBook ticket={ticket}/> }
+        { visible &&  <SaveAndBook navigation={navigation} ticket={ticket} saved={saved}/> }
        
 
     </TouchableOpacity>

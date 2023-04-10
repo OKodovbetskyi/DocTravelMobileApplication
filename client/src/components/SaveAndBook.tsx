@@ -24,7 +24,7 @@ const SaveAndBook: React.FC<SaveProps> = ({navigation,ticket,saved=false}) => {
             <Button
               title="Book"
               buttonStyle={styles.btnBook}
-              onPress={()=>navigation.navigate('BookingForm')}/>
+              onPress={()=>navigation.navigate('BookingForm', ticket)}/>
             {saved ?
              <Button
              title="Remove"
