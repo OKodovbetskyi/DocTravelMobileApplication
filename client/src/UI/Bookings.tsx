@@ -5,39 +5,25 @@ import Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react'
 import { FlatList, View } from 'react-native'
 import Booking from '../components/Booking';
-const IP_ADDRESS = Constants.expoConfig.extra.apiUrl;
-const URL = `http://${IP_ADDRESS}:3000/`
-const endpoint =  `api/bookings`
+import { API } from '../api/API';
+import { useLoad } from '../components/hooks/useLoad';
+
+const endpoint =  `/bookings`
 
 
 export const Bookings = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(()=>{
-    setLoading(true)
-      axios.get(URL+endpoint)
-        .then(response => {
-         setData(response.data.result);
-         setLoading(false)
-        })
-        .catch(error => {
-          console.error(error);
-          setLoading(false)
-        });
-  },[])
-  console.log(data);
+  const {loading,status, load, data} = useLoad(endpoint);
+  useEffect(()=>load(endpoint),[]);
   return (
     <View>
     <Text variant='h5'>MY BOOKINGS</Text>
     {
-      loading ? <Text>Loading....</Text>
-      : <FlatList
+      data.length>0 ? <FlatList
       data={data}
-      renderItem={({item})=>  <Booking booking={item}/>} 
-      />
-    
+      renderItem={({item})=>  <Booking booking={item} load={load}/>} 
+      />:
+      <Text>Loading....</Text>
     }
-   
     </View>
   )
 }

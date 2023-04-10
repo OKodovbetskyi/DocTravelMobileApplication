@@ -1,0 +1,74 @@
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
+import Button from 'react-native-elements/dist/buttons/Button'
+import { useDispatch, useSelector } from 'react-redux'
+import { flightqueActions, persistantStorageActions } from '../store'
+interface SaveProps{
+  tickets: any,
+  saved: boolean,
+  navigation: any
+}
+const SaveAndBook: React.FC<SaveProps> = ({navigation,ticket,saved=false}) => {
+  const dispatch = useDispatch();
+  const savedTickets = useSelector(state=> state.persistantStorageSlice); 
+  console.log(">>>>>",savedTickets.length);
+  const handleSave= ()=>{
+    dispatch(persistantStorageActions.save(ticket));
+  }
+  const handleRemove=()=>{
+    dispatch(persistantStorageActions.remove(ticket.itineraries[0].segments[0].id))
+    dispatch(persistantStorageActions.save(null));
+  }
+  return (
+    <View style={styles.container}>
+            <Button
+              title="Book"
+              buttonStyle={styles.btnBook}
+              onPress={()=>navigation.navigate('Login')}/>
+            {saved ?
+             <Button
+             title="Remove"
+             onPress={handleRemove}
+             buttonStyle={styles.btnRemove} />
+            :
+            <Button
+            title="Save"
+            onPress={handleSave}
+            buttonStyle={styles.btnSave} />
+          }
+           
+    </View>
+  )
+}
+const styles = StyleSheet.create({
+    container:{
+        display:'flex',
+        flexDirection: 'row',
+       
+    },
+    btnBook:{
+        backgroundColor: '#BF40BF',
+        borderColor: 'transparent',
+        borderWidth: 0,
+        borderRadius: 20,
+        width: '80%',
+        alignSelf:'center'
+    },
+    btnSave:{
+        backgroundColor: '#BF40BF',
+        borderColor: 'transparent',
+        borderWidth: 0,
+        borderRadius: 20,
+        width: '80%',
+        alignSelf:'center'
+    },
+    btnRemove:{
+      backgroundColor: 'red',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      borderRadius: 20,
+      width: '80%',
+      alignSelf:'center'
+    }
+})
+export default SaveAndBook

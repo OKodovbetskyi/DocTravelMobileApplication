@@ -1,0 +1,61 @@
+import React, { useCallback, useEffect } from "react";
+import AutocompleteInput from "react-native-autocomplete-input"
+import { Text } from "@react-native-material/core";
+import axios from 'axios'
+import { getAmadeusData } from "../../api/amadeus.api";
+import { debounce } from "lodash"
+
+const SearchAutocomplete = (props) => {
+  const [open, setOpen] = React.useState(false);
+  const [options, setOptions] = React.useState([]);
+  const [search, setSearch] = React.useState('')
+  const [keyword, setKeyword] = React.useState('')
+  const [loading, setLoading] = React.useState(false)
+
+  // Configure options format for proper displaying on the UI
+  const names = options.map(i => ({ type: i.subType, name: i.name }));
+
+  // Debounce func prevents extra unwanted keystrokes, when user triggers input events 
+  const debounceLoadData = useCallback(debounce(setKeyword, 1000), []);
+
+  useEffect(() => {
+    debounceLoadData(search);
+  }, [search]);
+
+  // Same example as in *SearchRoot* component
+  React.useEffect(() => {
+
+    setLoading(true)
+    const { out, source } = getAmadeusData({ ...props.search, page: 0, keyword });
+
+    out.then(res => {
+      if (!res.data.code) {
+        setOptions(res.data.data);
+      }
+      setLoading(false)
+    }).catch(err => {
+      axios.isCancel(err);
+      setOptions([]);
+      setLoading(false)
+
+    });
+
+    return () => {
+      source.cancel()
+    };
+  }, [keyword]);
+
+  // Desctructuring our props
+  const { city, airport } = props.search
+
+  const label = city && airport ? "City and Airports" : city ? "City" : airport ? "Airports" : ""
+
+  return (
+    // This is Material-UI component that also has it's own props
+    <>
+     
+    </>
+  )
+};
+
+export default SearchAutocomplete;

@@ -1,0 +1,1 @@
+export const API = `http://${process.env.IP_ADDRESS}/api`
