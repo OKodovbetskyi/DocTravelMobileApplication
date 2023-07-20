@@ -3,7 +3,7 @@ name: Deploy
 # Controls when the action will run. 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
         port: 22
         script: |
           cd /var/www/softwarehub.uk/html/apps/
-          git pull origin master
+          git pull origin main
           git status
           npm install
           npm start
