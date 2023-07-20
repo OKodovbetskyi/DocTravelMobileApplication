@@ -15,7 +15,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.UNIBASE_CONTINUOUS_DEPLOYMENT }}
+        key: ${{ secrets.PRIVATE_SECRET }}
         port: 22
         script: |
           cd /var/www/softwarehub.uk/html/apps/
